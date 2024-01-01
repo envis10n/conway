@@ -201,7 +201,7 @@ export class Perlin {
     }
     constructor(rand?: boolean) {
         if (rand) {
-            this._permutation.sort(() => this.rng.randomBool() ? -1 : 1);
+            this._permutation.sort(() => (this.rng.randomBool() ? -1 : 1));
         }
         for (let i = 0; i < 256; i++) {
             this._p[i] = this._permutation[i];
@@ -236,13 +236,34 @@ export class Perlin {
         const B = this._p[X + 1] + Y;
         const BA = this._p[B] + Z;
         const BB = this._p[B + 1] + Z;
-        return lerp(w, lerp(v, lerp(u, this.grad(this._p[AA  ], x  , y  , z   ),  // AND ADD
-        this.grad(this._p[BA  ], x-1, y  , z   )), // BLENDED
-lerp(u, this.grad(this._p[AB  ], x  , y-1, z   ),  // RESULTS
-this.grad(this._p[BB  ], x-1, y-1, z   ))),// FROM  8
-lerp(v, lerp(u, this.grad(this._p[AA+1], x  , y  , z-1 ),  // CORNERS
-this.grad(this._p[BA+1], x-1, y  , z-1 )), // OF CUBE
-lerp(u, this.grad(this._p[AB+1], x  , y-1, z-1 ),
-this.grad(this._p[BB+1], x-1, y-1, z-1 ))));
+        return lerp(
+            w,
+            lerp(
+                v,
+                lerp(
+                    u,
+                    this.grad(this._p[AA], x, y, z), // AND ADD
+                    this.grad(this._p[BA], x - 1, y, z),
+                ), // BLENDED
+                lerp(
+                    u,
+                    this.grad(this._p[AB], x, y - 1, z), // RESULTS
+                    this.grad(this._p[BB], x - 1, y - 1, z),
+                ),
+            ), // FROM  8
+            lerp(
+                v,
+                lerp(
+                    u,
+                    this.grad(this._p[AA + 1], x, y, z - 1), // CORNERS
+                    this.grad(this._p[BA + 1], x - 1, y, z - 1),
+                ), // OF CUBE
+                lerp(
+                    u,
+                    this.grad(this._p[AB + 1], x, y - 1, z - 1),
+                    this.grad(this._p[BB + 1], x - 1, y - 1, z - 1),
+                ),
+            ),
+        );
     }
 }

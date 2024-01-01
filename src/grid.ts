@@ -1,4 +1,4 @@
-import { Vector2 } from "./utils";
+import { Vector2 } from './utils';
 
 export enum EGridMapErrorType {
     EOUT_OF_BOUNDS = 'EOUT_OF_BOUNDS',
@@ -31,15 +31,14 @@ export class GridMap<T> {
     public *iter_coords(): IterableIterator<[Vector2, T]> {
         for (let i = 0; i < this._arr.length; i++) {
             const v = this._arr[i];
-            yield [{x: this.getX(i), y: this.getY(i)}, v];
+            yield [{ x: this.getX(i), y: this.getY(i) }, v];
         }
     }
     public getNeighbors(x: number, y: number): T[] {
         const res: T[] = [];
         for (let iy = -1; iy <= 1; iy++) {
-            if (iy == 0) continue;
             for (let ix = -1; ix <= 1; ix++) {
-                if (ix == 0) continue;
+                if (ix == 0 && iy == 0) continue;
                 const nx = x + ix;
                 const ny = y + iy;
                 if (nx < 0 || nx >= this.width) continue;
