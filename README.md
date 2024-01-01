@@ -22,10 +22,14 @@ A Conway's Game of Life simulation for the browser.
 
 In the browser, there are a few settings that can be changed.
 
-- Canvas Width: Changes the canvas render width in pixels.
-- Canvas Height: Changes the canvas render height in pixels.
-- Tile Size: Changes the tile size in pixels. Determines the size of the underlying `GridMap`.
-- Frame rate: Changes the timeout period before requesting an animation frame for rendering. Value is in hertz.
+- Canvas Width
+  * Changes the canvas render width in pixels.
+- Canvas Height
+  * Changes the canvas render height in pixels.
+- Tile Size
+  * Changes the tile size in pixels. Determines the size of the underlying `GridMap`.
+- Frame rate
+  * Changes the timeout period before requesting an animation frame for rendering. Value is in hertz.
 
 Pressing the `Update Settings` button will create a fresh canvas with the new settings.
 
