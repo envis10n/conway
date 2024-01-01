@@ -1,17 +1,36 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Conway</title>
-        <script src="./conway.js"></script>
-        <style>
-            canvas {
-                display: block;
-                border: 2px solid black;
-                margin-right: auto;
-                margin-left: auto;
-            }
-        </style>
-    </head>
-    <body>
-    </body>
+
+<head>
+    <title>Conway</title>
+    <script src="./conway.js"></script>
+    <style>
+        canvas {
+            display: block;
+            border: 2px solid black;
+            margin-right: auto;
+            margin-left: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <label for="rangeWidth">Canvas Width:</label>
+        <input id="rangeWidth" type="range" step="8" max="1280" min="512" value="512" /><label
+            id="widthValue">512</label><br />
+        <label for="rangeHeight">Canvas Height:</label>
+        <input id="rangeHeight" type="range" step="8" max="1280" min="512" value="512" /><label
+            id="heightValue">512</label><br />
+        <label for="rangeTileSize">Tile Size:</label>
+        <input id="rangeTileSize" type="range" step="2" max="32" min="4" value="4" /><label
+            id="tileValue">4</label><br /><br />
+        <label for="inpFPS">Framerate:</label><input id="inpFPS" type="text" placeholder="Enter framerate in hertz..."
+            value="30" /><br />
+        <button id="buttonUpdate">Update Settings</button><br /><br />
+        <button id="buttonPauseToggle">Simulate</button>
+    </div>
+    <br />
+</body>
+
 </html>

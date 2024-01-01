@@ -22,16 +22,16 @@ export class CanvasRender {
             options,
         );
         let canvas = document.getElementById(opts.id);
+        if (canvas != null) {
+            canvas.remove();
+            canvas = null;
+        }
         if (canvas == null) {
             canvas = document.createElement('canvas');
             canvas.id = opts.id;
             canvas.setAttribute('width', opts.width.toString());
             canvas.setAttribute('height', opts.height.toString());
             document.body.appendChild(canvas);
-        } else {
-            opts.height = parseInt(canvas.getAttribute('height') || '512');
-            opts.width = parseInt(canvas.getAttribute('width') || '512');
-            opts.id = canvas.id;
         }
         this.tileSize = opts.tileSize;
         this.width = opts.width;
@@ -96,35 +96,36 @@ function step(grid: GridMap<LifeState>) {
     }
 }
 
-let state: {isPaused: boolean} = {isPaused: true};
+let state: {
+    width: number;
+    height: number;
+    isPaused: boolean;
+    framerate: number;
+    tileSize: number;
+} = { isPaused: true, framerate: 30, width: 512, height: 512, tileSize: 4 };
 
-window.onkeydown = (ev) => {
-    if (ev.key == " ") {
-        state.isPaused = !state.isPaused;
-    }
-};
-
-window.onload = () => {
+function loadConway() {
     const rng = Rng.Rng16();
     const perlin = new Perlin(true);
     const render = new CanvasRender({
         id: '_conway_render',
-        tileSize: 8,
-        width: window.innerWidth,
-        height: window.innerHeight,
+        tileSize: state.tileSize,
+        width: state.width,
+        height: state.height,
     });
     const map = render.makeTileSet<LifeState>(LifeState.Dead);
     for (const [pos, v] of map.iter_coords()) {
         const n = perlin.noise(pos.x, pos.y);
-        if (n >= 0.5 && rng.randomBool(0.15)) map.set(pos.x, pos.y, LifeState.Alive);
+        if (n >= 0.5 && rng.randomBool(0.15))
+            map.set(pos.x, pos.y, LifeState.Alive);
     }
-    function worldLoop(refreshRate: number) {
+    function worldLoop() {
         if (!state.isPaused) {
             simulate();
         }
         setTimeout(() => {
-            requestAnimationFrame(worldLoop.bind(null, refreshRate));
-        }, 1000 / refreshRate);
+            requestAnimationFrame(worldLoop);
+        }, 1000 / state.framerate);
     }
     function renderMap() {
         render.renderMap(map, (v) => {
@@ -141,5 +142,75 @@ window.onload = () => {
         renderMap();
     }
     renderMap();
-    worldLoop(30);
+    worldLoop();
+}
+
+window.onload = () => {
+    const rangeWidth = document.getElementById(
+        'rangeWidth',
+    ) as HTMLInputElement;
+    const widthLabel = document.getElementById(
+        'widthValue',
+    ) as HTMLLabelElement;
+    const rangeHeight = document.getElementById(
+        'rangeHeight',
+    ) as HTMLInputElement;
+    const heightLabel = document.getElementById(
+        'heightValue',
+    ) as HTMLLabelElement;
+    const rangeTileSize = document.getElementById(
+        'rangeTileSize',
+    ) as HTMLInputElement;
+    const tileValue = document.getElementById('tileValue') as HTMLLabelElement;
+    const updateBtn = document.getElementById(
+        'buttonUpdate',
+    ) as HTMLButtonElement;
+    const pauseBtn = document.getElementById(
+        'buttonPauseToggle',
+    ) as HTMLButtonElement;
+    const inpFPS = document.getElementById("inpFPS") as HTMLInputElement;
+
+
+    widthLabel.textContent = rangeWidth.value;
+    heightLabel.textContent = rangeHeight.value;
+    tileValue.textContent = rangeTileSize.value;
+
+    rangeWidth.onchange = (ev) => {
+        widthLabel.textContent = rangeWidth.value;
+    };
+
+    rangeHeight.onchange = (ev) => {
+        heightLabel.textContent = rangeHeight.value;
+    };
+
+    inpFPS.onchange = (ev) => {
+        const nfps: number = parseInt(inpFPS.value);
+        if (!isNaN(nfps)) state.framerate = nfps;
+    }
+
+    rangeTileSize.onchange = (ev) => {
+        tileValue.textContent = rangeTileSize.value;
+    };
+
+    function setupConway() {
+        state.height = rangeHeight.valueAsNumber;
+        state.width = rangeWidth.valueAsNumber;
+        state.tileSize = rangeTileSize.valueAsNumber;
+        state.isPaused = true;
+        const nfps = parseInt(inpFPS.value);
+        state.framerate = isNaN(nfps) ? state.framerate : nfps;
+        pauseBtn.textContent = 'Simulate';
+        loadConway();
+    }
+
+    updateBtn.onclick = () => {
+        setupConway();
+    };
+
+    pauseBtn.onclick = () => {
+        state.isPaused = !state.isPaused;
+        pauseBtn.textContent = state.isPaused ? 'Simulate' : 'Pause';
+    };
+
+    setupConway();
 };
