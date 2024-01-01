@@ -1,6 +1,12 @@
 {
   "name": "conway",
   "packageManager": "yarn@4.0.2",
+  "scripts": {
+    "check": "tsc --noEmit",
+    "build:debug": "esbuild src/index.ts --outfile=conway.js --bundle",
+    "build:release": "esbuild src/index.ts --outfile=conway.js --bundle --minify",
+    "fmt": "prettier src/**/*.ts -w"
+  },
   "devDependencies": {
     "esbuild": "^0.19.11",
     "typescript": "^5.3.3"
