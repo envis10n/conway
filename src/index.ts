@@ -1,5 +1,6 @@
 import { GridMap } from './grid';
 import { Perlin, Rng } from './utils';
+import { ApgCode } from './apg';
 
 export type CanvasRenderOptions = {
     width: number;
@@ -86,13 +87,19 @@ function getDeadNeighbors(
 }
 
 function step(grid: GridMap<LifeState>) {
+    const updates: Array<[number,number,LifeState]> = [];
     for (const [pos, state] of grid.iter_coords()) {
         let _state = state;
         const living = getLivingNeighbors(pos.x, pos.y, grid);
         if (living < 2 || living > 3) _state = LifeState.Dead;
         else if (_state == LifeState.Dead && living == 3)
             _state = LifeState.Alive;
-        grid.set(pos.x, pos.y, _state);
+        if (_state != state)
+            updates.push([pos.x,pos.y,_state]);
+    }
+    // Update the field.
+    for (const [x,y,state] of updates) {
+        grid.set(x,y,state);
     }
 }
 
@@ -102,11 +109,34 @@ let state: {
     isPaused: boolean;
     framerate: number;
     tileSize: number;
-} = { isPaused: true, framerate: 30, width: 512, height: 512, tileSize: 4 };
+    seed: string;
+} = { isPaused: true, framerate: 30, width: 512, height: 512, tileSize: 4, seed: "xq4_3482h8a"};
+
+function parseSeed(text: string): Array<[number,number]> {
+    const gridWidth = Math.floor(state.width / state.tileSize);
+    const gridHeight = Math.floor(state.height / state.tileSize);
+    const seed: Array<[number,number]> = [];
+    function getNum(char: string): number {
+        let res = parseInt(char);
+        if (isNaN(res)) res = char.codePointAt(0) || 0;
+        return res;
+    }
+    let temp = "";
+    for (const char of text) {
+        if (temp.length > 0) {
+            seed.push([getNum(temp) % gridWidth,getNum(char) % gridHeight]);
+            temp = "";
+        } else {
+            temp = char;
+        }
+    }
+    if (temp.length > 0) {
+        seed.push([getNum(temp) % gridWidth, 0]);
+    }
+    return seed;
+}
 
 function loadConway() {
-    const rng = Rng.Rng16();
-    const perlin = new Perlin(true);
     const render = new CanvasRender({
         id: '_conway_render',
         tileSize: state.tileSize,
@@ -114,10 +144,18 @@ function loadConway() {
         height: state.height,
     });
     const map = render.makeTileSet<LifeState>(LifeState.Dead);
-    for (const [pos, v] of map.iter_coords()) {
-        const n = perlin.noise(pos.x, pos.y);
-        if (n >= 0.5 && rng.randomBool(0.15))
-            map.set(pos.x, pos.y, LifeState.Alive);
+    if (state.seed == "" || true) {
+        const perlin = new Perlin(true);
+        const rng = Rng.Rng16();
+        for (const [pos, _] of map.iter_coords()) {
+            const np = perlin.noise(pos.x, pos.y);
+            if (np > 0.5 && rng.randomBool(0.35)) map.set(pos.x, pos.y, LifeState.Alive);
+        }
+    } else {
+        const agp = new ApgCode(state.seed);
+        for (const pos of agp.iter()) {
+            map.set(pos.x + Math.floor(map.width / 2), pos.y + (Math.floor(map.height / 2)), LifeState.Alive);
+        }
     }
     function worldLoop() {
         if (!state.isPaused) {
@@ -169,7 +207,7 @@ window.onload = () => {
         'buttonPauseToggle',
     ) as HTMLButtonElement;
     const inpFPS = document.getElementById("inpFPS") as HTMLInputElement;
-
+    const seedText = document.getElementById("seedText") as HTMLInputElement;
 
     widthLabel.textContent = rangeWidth.value;
     heightLabel.textContent = rangeHeight.value;
@@ -196,6 +234,8 @@ window.onload = () => {
         state.height = rangeHeight.valueAsNumber;
         state.width = rangeWidth.valueAsNumber;
         state.tileSize = rangeTileSize.valueAsNumber;
+        let seedval = seedText.value.trim();
+        state.seed = seedval
         state.isPaused = true;
         const nfps = parseInt(inpFPS.value);
         state.framerate = isNaN(nfps) ? state.framerate : nfps;
